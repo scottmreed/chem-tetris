@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+:root, body, #root {
+	min-height: 100%;
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	height: 100vh;
+	width: 100vw;
+	background-color: #05080d;
+	overflow: hidden;
+	-webkit-overflow-scrolling: touch;
+}
