@@ -30,7 +30,7 @@
 		"lint:eslint": "eslint -c config/eslint.mjs .",
 		"lint:style": "prettier --write .",
 		"start": "robox start",
-		"tunnel": ".robo/bin/cloudflared tunnel --url http://localhost:3000",
+		"tunnel": ".robo/bin/cloudflared tunnel --url http://localhost:3003",
 		"upgrade": "sage upgrade",
 		"postinstall": "node scripts/fix-robo-sync.mjs"
 	},

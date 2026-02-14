@@ -32,9 +32,10 @@ export interface ChemAsciiTetrisProps {
   discordUsername?: string;
   discordUserId?: string;
   discordAvatar?: string | null;
-  onHighScoreSubmit?: (entry: HighScoreEntry) => void;
+  onHighScoreSubmit?: (entry: HighScoreEntry) => Promise<boolean> | void;
   onGameStart?: () => void;
   totalGamesPlayed?: number;
+  currentHighScores?: HighScoreEntry[];
 }
 
 export interface ChemAsciiTetrisRef {
@@ -56,6 +57,7 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(({
   onHighScoreSubmit,
   onGameStart,
   totalGamesPlayed = 0,
+  currentHighScores = [],
 }, ref) => {
   const TIER_ONE_MOLS = useMemo<Molecule[]>(
     () => [
@@ -633,7 +635,7 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(({
     lockPiece();
   };
 
-  const gameOver = (msg: string) => {
+  const gameOver = async (msg: string) => {
     const g = gameRef.current!;
     g.running = false;
     if (tickId.current !== null) window.clearInterval(tickId.current);
@@ -642,17 +644,30 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(({
     setHighlightKeys([]);
     onEnd?.(g.score);
 
-    if (g.score > 0 && discordUsername && discordUserId) {
-      onHighScoreSubmit?.({
-        username: discordUsername,
-        userId: discordUserId,
-        avatar: discordAvatar ?? null,
-        score: g.score,
-        timestamp: Date.now(),
-      });
+    let isNewTopScore = false;
+
+    if (g.score > 0 && onHighScoreSubmit) {
+      try {
+        const result = await onHighScoreSubmit({
+          username: discordUsername || 'anon',
+          userId: discordUserId || 'unknown',
+          avatar: discordAvatar ?? null,
+          score: g.score,
+          timestamp: Date.now(),
+        });
+        isNewTopScore = result === true;
+      } catch (error) {
+        console.error('Failed to submit high score', error);
+      }
     }
 
-    setOverlay(`${msg}  Score: ${g.score}. Click Restart or press 'R'.`);
+    if (isNewTopScore) {
+      setOverlay(
+        `${msg}  Score: ${g.score}\n\n🎉 You're the new #1!\n\nUse code chemillusion-tetris-winner at https://chemillusion.com/subscribe for a free month of ChemIllusion Basic.\n\nPlease don't share this code publicly.\n\nClick Restart or press 'R'.`
+      );
+    } else {
+      setOverlay(`${msg}  Score: ${g.score}. Click Restart or press 'R'.`);
+    }
     bump();
   };
 
@@ -1115,6 +1130,14 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(({
               </h4>
               <p style={{ margin: '3px 0' }}>
                 Arrows move, Space hard-drops, H opens/closes help, R restarts. Touch: tap left/right to move.
+              </p>
+            </section>
+            <section style={{ marginBottom: 14, fontSize: 12, lineHeight: 1.45 }}>
+              <h4 style={{ margin: '0 0 4px', fontSize: 12, color: '#f5b63b', textTransform: 'uppercase' }}>
+                🎉 ChemIllusion Reward
+              </h4>
+              <p style={{ margin: '3px 0' }}>
+                Take the top spot on the leaderboard to unlock a preview code for one free month of <strong>ChemIllusion Basic</strong> membership at <a href="https://chemillusion.com/subscribe" style={{ color: '#8bd3ff' }}>chemillusion.com/subscribe</a>. Please keep it private!
               </p>
             </section>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

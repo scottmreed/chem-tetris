@@ -27,15 +27,30 @@ export const Activity = () => {
 	const avatar = session?.user?.avatar ?? null
 
 	const handleHighScoreSubmit = useCallback(
-		(entry: HighScoreEntry) => {
-			setHighScores((prev: HighScoreEntry[]) => {
-				const updated = [...prev, entry]
-					.sort((a, b) => {
-						if (b.score !== a.score) return b.score - a.score
-						return (a.timestamp ?? 0) - (b.timestamp ?? 0)
-					})
-					.slice(0, 10)
-				return updated
+		async (entry: HighScoreEntry): Promise<boolean> => {
+			return new Promise((resolve) => {
+				setHighScores((prev: HighScoreEntry[]) => {
+					// Check what the current top score is BEFORE adding the new entry
+					const previousTopScore = prev.length > 0 ? prev[0]?.score ?? 0 : 0
+
+					const updated = [...prev, entry]
+						.sort((a, b) => {
+							if (b.score !== a.score) return b.score - a.score
+							return (a.timestamp ?? 0) - (b.timestamp ?? 0)
+						})
+						.slice(0, 10)
+
+					// Check if this entry is now #1 AND it beat the previous top score
+					const isNewTopScore = updated.length > 0 && 
+						updated[0]?.userId === entry.userId && 
+						updated[0]?.timestamp === entry.timestamp &&
+						entry.score > previousTopScore
+
+					// Resolve after the state update
+					setTimeout(() => resolve(isNewTopScore), 0)
+
+					return updated
+				})
 			})
 		},
 		[setHighScores]
@@ -72,7 +87,14 @@ export const Activity = () => {
 		<div className="flex h-screen w-screen flex-col items-center overflow-hidden bg-[#05080d] p-3">
 			{/* Header */}
 			<div className="mb-2 text-center">
-				<h1 className="text-base font-bold text-[#f3f6ff]">ChemIllusion: IUPAC Rain</h1>
+				<a
+					href="https://ChemIllusion.com"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="text-base font-bold text-[#f3f6ff] transition-colors hover:text-[#8bd3ff]"
+				>
+					ChemIllusion: IUPAC Rain
+				</a>
 				{authenticated && (
 					<div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-[#90a2c9]">
 						{avatar && userId !== 'unknown' && (
@@ -129,6 +151,7 @@ export const Activity = () => {
 					onHighScoreSubmit={handleHighScoreSubmit}
 					onGameStart={handleGameStart}
 					totalGamesPlayed={totalGamesPlayed}
+					currentHighScores={highScores}
 				/>
 			</div>
 

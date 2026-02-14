@@ -11,6 +11,7 @@ export default defineConfig({
 		postcss: 'config/postcss.config.mjs'
 	},
 	server: {
-		allowedHosts: true
+		allowedHosts: true,
+		port: 3003
 	}
 })
