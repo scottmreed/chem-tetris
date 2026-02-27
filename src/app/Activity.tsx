@@ -362,7 +362,7 @@ export const Activity = () => {
 
 	// Playing phase — either single-player or multiplayer
 	return (
-		<div className="flex h-screen w-screen flex-col items-center overflow-hidden bg-[#05080d] p-3">
+		<div className="flex min-h-screen w-screen flex-col items-center overflow-y-auto bg-[#05080d] p-3">
 			{/* Header */}
 			<div className="mb-2 text-center">
 				<a

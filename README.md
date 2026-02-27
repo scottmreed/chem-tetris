@@ -67,7 +67,7 @@ Push to `main` — GitHub Actions builds and deploys automatically via `.github/
 
 Required GitHub secrets:
 - `CLOUDFLARE_API_TOKEN` — Cloudflare API token with Pages Edit permission
-- `CLOUDFLARE_ACCOUNT_ID` — `61324b59d67dc1794591d5918d26aa8c`
+- `CLOUDFLARE_ACCOUNT_ID` — find this by running `wrangler whoami`
 - `VITE_DISCORD_CLIENT_ID` — Discord application ID
 
 ## Discord developer portal
