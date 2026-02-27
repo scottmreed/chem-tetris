@@ -457,10 +457,18 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 								borderRadius: 8,
 								textAlign: 'center',
 								padding: 12,
+								overflow: 'auto',
+								zIndex: 10,
 							}}
 						>
-							<div style={{ display: 'grid', gap: 10, justifyItems: 'center' }}>
-								<div style={{ whiteSpace: 'pre-line', fontSize: compact ? 11 : 13 }}>
+							<div style={{ display: 'grid', gap: 10, justifyItems: 'center', maxWidth: '100%' }}>
+								<div style={{ 
+									whiteSpace: 'pre-line', 
+									fontSize: compact ? 11 : 13,
+									maxWidth: '100%',
+									wordWrap: 'break-word',
+									overflowWrap: 'break-word',
+								}}>
 									{overlay}
 								</div>
 								<button

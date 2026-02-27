@@ -101,6 +101,8 @@ export function useGameEngine(opts: UseGameEngineOptions) {
 			highlightTimeoutRef.current = window.setTimeout(() => {
 				highlightTimeoutRef.current = null
 				engine.clearMatch(match)
+				setHighlightKeys([]) // Clear highlight after clearing the match
+				bump()
 
 				// After clearing, check if new target also matches immediately
 				const autoMatch = engine.pickNewTarget()

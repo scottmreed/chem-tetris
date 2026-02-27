@@ -52,7 +52,7 @@ DISCORD_CLIENT_SECRET=    # your Discord application secret (never commit this)
 VITE_DISCORD_CLIENT_ID=   # same as DISCORD_CLIENT_ID (baked into frontend at build time)
 ```
 
-These are gitignored. Set `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` as Cloudflare Pages secrets via:
+Set `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` as Cloudflare Pages secrets via:
 
 ```bash
 wrangler pages secret put DISCORD_CLIENT_ID --project-name=chem-tetris-discord
@@ -74,7 +74,3 @@ Required GitHub secrets:
 
 - **Activity URL Mappings → Root**: Prefix `/`, Target `app.mechanismsolver.org`
 - **OAuth2 Redirects**: `https://app.mechanismsolver.org`
-
-## Going public
-
-While the activity status is **In Development**, only users added as App Testers in the Discord developer portal can see and launch it. To remove the "In Development" label and make it available to all users, submit for Discord Activity review.
