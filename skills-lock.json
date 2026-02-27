@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "cloudflare": {
+      "source": "cloudflare/skills",
+      "sourceType": "github",
+      "computedHash": "5e3cd2bb90ee02796d0158fadaa6a1a90ef24b71f86f2abc6d668541010285b1"
+    },
+    "discord-bot-architect": {
+      "source": "davila7/claude-code-templates",
+      "sourceType": "github",
+      "computedHash": "b3d1f3df0f1dcbb5ea34962c91e70198e539daec9f4f0358087a36a1e5f80eef"
+    }
+  }
+}

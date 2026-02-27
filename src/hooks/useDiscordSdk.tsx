@@ -140,6 +140,14 @@ export async function authenticateSdk(options?: AuthenticateSdkOptions) {
 	const { scope = ['identify', 'guilds'] } = options ?? {}
 
 	await discordSdk.ready()
+
+	// In browser (non-embedded) dev mode the SDK is a mock — skip real OAuth
+	if (!isEmbedded) {
+		const auth = await discordSdk.commands.authenticate({ access_token: 'mock_token' })
+		if (auth == null) throw new Error('Discord authenticate command failed')
+		return { accessToken: 'mock_token', auth }
+	}
+
 	const { code } = await discordSdk.commands.authorize({
 		client_id: import.meta.env.VITE_DISCORD_CLIENT_ID,
 		response_type: 'code',
@@ -155,13 +163,24 @@ export async function authenticateSdk(options?: AuthenticateSdkOptions) {
 		},
 		body: JSON.stringify({ code })
 	})
-	const { access_token } = await response.json()
+
+	if (!response.ok) {
+		const errorText = await response.text().catch(() => 'unknown error')
+		throw new Error(`Token exchange failed (${response.status}): ${errorText}`)
+	}
+
+	const tokenData = await response.json()
+	const { access_token } = tokenData
+
+	if (!access_token) {
+		throw new Error('Token exchange returned empty access_token')
+	}
 
 	// Authenticate with Discord client (using the access_token)
 	const auth = await discordSdk.commands.authenticate({ access_token })
 
 	if (auth == null) {
-		throw new Error('Authenticate command failed')
+		throw new Error('Discord authenticate command failed')
 	}
 	return { accessToken: access_token, auth }
 }

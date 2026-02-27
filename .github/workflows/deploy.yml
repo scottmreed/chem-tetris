@@ -28,6 +28,8 @@ jobs:
 
       - name: Build
         run: npm run build:web
+        env:
+          GITHUB_PAGES: true
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
