@@ -402,93 +402,95 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 					</div>
 				)}
 
-				<div style={{ position: 'relative' }}>
-					<pre
-						aria-label="chem-ascii-board"
-						style={{
-							fontSize,
-							lineHeight: 1.0,
-							background: '#12121a',
-							padding: compact ? 4 : 6,
-							borderRadius: 8,
-							boxShadow: '0 0 0 1px #24243a inset',
-							margin: 0,
-							userSelect: 'none',
-						}}
-					>
-						{g ? renderBoard() : null}
-					</pre>
+				<div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 12, alignItems: 'flex-start', justifyContent: 'center' }}>
+					<div style={{ position: 'relative' }}>
+						<pre
+							aria-label="chem-ascii-board"
+							style={{
+								fontSize,
+								lineHeight: 1.0,
+								background: '#12121a',
+								padding: compact ? 4 : 6,
+								borderRadius: 8,
+								boxShadow: '0 0 0 1px #24243a inset',
+								margin: 0,
+								userSelect: 'none',
+							}}
+						>
+							{g ? renderBoard() : null}
+						</pre>
 
-					{isMobile && g?.running && (
-						<>
-							<div
-								aria-hidden="true"
-								onPointerDown={tapLeft}
-								style={{
-									position: 'absolute',
-									top: 0,
-									bottom: 0,
-									left: 0,
-									width: '50%',
-								}}
-							/>
-							<div
-								aria-hidden="true"
-								onPointerDown={tapRight}
-								style={{
-									position: 'absolute',
-									top: 0,
-									bottom: 0,
-									right: 0,
-									width: '50%',
-								}}
-							/>
-						</>
-					)}
+						{isMobile && g?.running && (
+							<>
+								<div
+									aria-hidden="true"
+									onPointerDown={tapLeft}
+									style={{
+										position: 'absolute',
+										top: 0,
+										bottom: 0,
+										left: 0,
+										width: '50%',
+									}}
+								/>
+								<div
+									aria-hidden="true"
+									onPointerDown={tapRight}
+									style={{
+										position: 'absolute',
+										top: 0,
+										bottom: 0,
+										right: 0,
+										width: '50%',
+									}}
+								/>
+							</>
+						)}
+					</div>
 
 					{overlay && !externalStart && (
 						<div
 							style={{
-								position: 'absolute',
-								inset: 0,
-								display: 'grid',
-								placeItems: 'center',
-								background: 'rgba(0,0,0,0.55)',
-								borderRadius: 8,
+								minWidth: compact ? 140 : 170,
+								maxWidth: compact ? 160 : 210,
+								background: 'rgba(18, 18, 26, 0.97)',
+								border: '1px solid #3a3a55',
+								borderRadius: 10,
+								padding: '14px 16px',
+								display: 'flex',
+								flexDirection: 'column',
+								gap: 10,
+								alignItems: 'center',
 								textAlign: 'center',
-								padding: 12,
-								overflow: 'auto',
-								zIndex: 10,
+								alignSelf: 'flex-start',
 							}}
 						>
-							<div style={{ display: 'grid', gap: 10, justifyItems: 'center', maxWidth: '100%' }}>
-								<div style={{ 
-									whiteSpace: 'pre-line', 
-									fontSize: compact ? 11 : 13,
-									maxWidth: '100%',
-									wordWrap: 'break-word',
-									overflowWrap: 'break-word',
-								}}>
-									{overlay}
-								</div>
-								<button
-									type="button"
-									onClick={() => {
-										start()
-										onGameStart?.()
-									}}
-									style={{
-										padding: '6px 10px',
-										borderRadius: 8,
-										border: '1px solid #3a3a55',
-										background: '#191926',
-										color: '#e6e6ea',
-										cursor: 'pointer',
-									}}
-								>
-									{primaryButtonLabel}
-								</button>
+							<div style={{
+								whiteSpace: 'pre-line',
+								fontSize: compact ? 11 : 13,
+								maxWidth: '100%',
+								wordWrap: 'break-word',
+								overflowWrap: 'break-word',
+							}}>
+								{overlay}
 							</div>
+							<button
+								type="button"
+								onClick={() => {
+									start()
+									onGameStart?.()
+								}}
+								style={{
+									padding: '6px 10px',
+									borderRadius: 8,
+									border: '1px solid #3a3a55',
+									background: '#191926',
+									color: '#e6e6ea',
+									cursor: 'pointer',
+								}}
+							>
+								{primaryButtonLabel}
+							</button>
 						</div>
 					)}
 				</div>

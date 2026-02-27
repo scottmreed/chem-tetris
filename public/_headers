@@ -1,0 +1,2 @@
+/*
+  Content-Security-Policy: frame-ancestors https://discord.com https://*.discord.com https://*.discordapp.com
