@@ -1,2 +1,2 @@
 /*
-  Content-Security-Policy: frame-ancestors https://discord.com https://*.discord.com https://*.discordapp.com
+  X-Content-Type-Options: nosniff

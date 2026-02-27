@@ -32,3 +32,14 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=chem-tetris-discord --commit-dirty=true
+
+      - name: Notify Discord on success
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_DEPLOY_WEBHOOK }}
+        run: |
+          [ -z "$DISCORD_WEBHOOK" ] && echo "No webhook configured, skipping" && exit 0
+          curl -s -H "Content-Type: application/json" \
+            -d "{\"content\":\"✅ **ChemIllusion deployed** → https://app.mechanismsolver.org\nCommit: \`${{ github.sha }}\` — ${{ github.event.head_commit.message }}\"}" \
+            "$DISCORD_WEBHOOK"
+        continue-on-error: true
