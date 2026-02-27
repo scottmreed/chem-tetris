@@ -13,7 +13,13 @@ const isEmbedded = queryParams.get('frame_id') != null
 let discordSdk: DiscordSDK | DiscordSDKMock
 
 if (isEmbedded) {
-	discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID)
+	try {
+		discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID)
+	} catch (e) {
+		console.error('[DiscordSDK init error]', e)
+		// Fall back to mock so React still mounts and shows a visible error
+		discordSdk = new DiscordSDKMock(import.meta.env.VITE_DISCORD_CLIENT_ID ?? '', '', '')
+	}
 } else {
 	// We're using session storage for user_id, guild_id, and channel_id
 	// This way the user/guild/channel will be maintained until the tab is closed, even if you refresh
