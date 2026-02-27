@@ -27,6 +27,7 @@ export const Activity = () => {
 	})
 	const [countdown, setCountdown] = useState<number | null>(null)
 	const [gameStarted, setGameStarted] = useState(false)
+	const [isPlaying, setIsPlaying] = useState(false)
 	const [pendingGarbage, setPendingGarbage] = useState(0)
 
 	const displayName = session?.user?.global_name || session?.user?.username || 'Player'
@@ -115,6 +116,7 @@ export const Activity = () => {
 	)
 
 	const handleGameStart = useCallback(() => {
+		setIsPlaying(true)
 		setTotalGamesPlayed((prev: number) => prev + 1)
 	}, [setTotalGamesPlayed])
 
@@ -453,7 +455,7 @@ export const Activity = () => {
 					<ChemAsciiTetris
 						width={10}
 						height={12}
-						onEnd={setLastScore}
+						onEnd={(score) => { setLastScore(score); setIsPlaying(false) }}
 						onGameStateChange={handleGameStateChange}
 						showHint={showHint}
 						discordUsername={displayName}
@@ -467,8 +469,8 @@ export const Activity = () => {
 				)}
 			</div>
 
-			{/* High Scores — hidden during active play to avoid overlap */}
-			{!gameStarted && (
+			{/* High Scores — hidden while actively playing */}
+			{!isPlaying && !gameStarted && (
 				<div className="mt-2 w-full max-w-xs">
 					<HighScoreBoard highScores={highScores} currentUserId={userId} />
 				</div>
