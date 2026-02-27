@@ -2,6 +2,10 @@
 
 A Discord embedded activity that brings chemical-themed ASCII Tetris to any voice channel. Arrange falling Carbon (C) and Oxygen (O) atoms to match IUPAC molecule targets. Compete with friends and climb the leaderboard.
 
+The game can be previewed here:
+https://chem-tetris-discord.pages.dev
+https://app.mechanismsolver.org
+
 ## Project layout
 
 | Repo | Folder | Purpose |
