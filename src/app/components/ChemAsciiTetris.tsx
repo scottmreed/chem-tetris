@@ -73,7 +73,10 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 	const containerRef = useRef<HTMLDivElement | null>(null)
 
 	// Background music
-	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, isPlaying: isMusicPlaying, volume, setVolume, autoplayBlocked } = useChiptuneMusic(0.15)
+	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, playOnInteraction, isPlaying: isMusicPlaying, volume, setVolume, autoplayBlocked } = useChiptuneMusic({
+		volume: 0.15,
+		autoPlayOnInteraction: true
+	})
 
 		useEffect(() => {
 			if (typeof window !== 'undefined') {
@@ -197,6 +200,7 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 			startGame: () => {
 				start()
 				onGameStart?.()
+				playOnInteraction()
 			},
 		}))
 
@@ -502,6 +506,7 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 								onClick={() => {
 									start()
 									onGameStart?.()
+									playOnInteraction()
 								}}
 								style={{
 									padding: '6px 10px',

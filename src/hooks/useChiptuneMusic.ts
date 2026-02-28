@@ -9,6 +9,8 @@ export interface ChiptuneMusicControls {
 	toggle: () => void
 	/** Set volume (0.0 to 1.0) */
 	setVolume: (volume: number) => void
+	/** Start music on user interaction (handles autoplay policies) */
+	playOnInteraction: () => Promise<void>
 }
 
 export interface ChiptuneMusicState {
@@ -20,11 +22,21 @@ export interface ChiptuneMusicState {
 	autoplayBlocked: boolean
 }
 
+export interface ChiptuneMusicOptions {
+	volume?: number
+	autoPlayOnInteraction?: boolean
+}
+
 /**
  * Hook that generates and plays simple 80s-style chiptune music using Web Audio API
  * Creates a retro synthwave background track
  */
-export function useChiptuneMusic(volume: number = 0.2): ChiptuneMusicControls & ChiptuneMusicState {
+export function useChiptuneMusic(options: number | ChiptuneMusicOptions = 0.2): ChiptuneMusicControls & ChiptuneMusicState {
+	// Handle both old and new API
+	const config = typeof options === 'number' ? { volume: options } : options
+	const volume = config.volume ?? 0.2
+	const autoPlayOnInteraction = config.autoPlayOnInteraction ?? false
+
 	const audioContextRef = useRef<AudioContext | null>(null)
 	const gainNodeRef = useRef<GainNode | null>(null)
 	const oscillatorRef = useRef<OscillatorNode | null>(null)
@@ -169,6 +181,18 @@ export function useChiptuneMusic(volume: number = 0.2): ChiptuneMusicControls & 
 		}
 	}, [])
 
+	const playOnInteraction = useCallback(async () => {
+		// Only auto-play if configured to do so and not already playing
+		if (!autoPlayOnInteraction || isPlaying || autoplayBlocked) return
+
+		try {
+			await play()
+		} catch (error) {
+			// Silently fail - user can manually enable music later
+			console.warn('Auto-play on interaction failed:', error)
+		}
+	}, [autoPlayOnInteraction, isPlaying, autoplayBlocked, play])
+
 	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
@@ -181,6 +205,7 @@ export function useChiptuneMusic(volume: number = 0.2): ChiptuneMusicControls & 
 		stop,
 		toggle,
 		setVolume,
+		playOnInteraction,
 		isPlaying,
 		volume: currentVolume,
 		autoplayBlocked,

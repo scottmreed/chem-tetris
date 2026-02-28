@@ -32,7 +32,10 @@ export const Activity = () => {
 	const [pendingGarbage, setPendingGarbage] = useState(0)
 
 	// Background music
-	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, isPlaying: isMusicPlaying, autoplayBlocked } = useChiptuneMusic(0.15)
+	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, playOnInteraction, isPlaying: isMusicPlaying, autoplayBlocked } = useChiptuneMusic({
+		volume: 0.15,
+		autoPlayOnInteraction: true
+	})
 
 	const displayName = session?.user?.global_name || session?.user?.username || 'Player'
 	const userId = session?.user?.id || 'unknown'
@@ -122,9 +125,9 @@ export const Activity = () => {
 	const handleGameStart = useCallback(() => {
 		setIsPlaying(true)
 		setTotalGamesPlayed((prev: number) => prev + 1)
-		// Note: Music will only start if user has interacted with music controls
-		// due to browser autoplay policies
-	}, [setTotalGamesPlayed])
+		// Start music on user interaction
+		playOnInteraction()
+	}, [setTotalGamesPlayed, playOnInteraction])
 
 	const handleGameStateChange = useCallback(
 		(state: typeof gameState) => {
@@ -340,7 +343,10 @@ export const Activity = () => {
 				<Lobby
 					lobby={lobby}
 					localPlayerId={userId}
-					onToggleReady={toggleReady}
+					onToggleReady={() => {
+						toggleReady()
+						playOnInteraction()
+					}}
 					onStartGame={startGame}
 				/>
 				<div className="mt-4 w-full max-w-xs">
