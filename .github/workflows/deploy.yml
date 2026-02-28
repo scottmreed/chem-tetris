@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Build And Notify Cloudflare Pages
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,13 +26,6 @@ jobs:
         env:
           VITE_DISCORD_CLIENT_ID: ${{ secrets.VITE_DISCORD_CLIENT_ID }}
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3.14.1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=chem-tetris-discord --branch=main --commit-dirty=true
-
       - name: Notify Discord on success
         if: success()
         env:
@@ -40,6 +33,6 @@ jobs:
         run: |
           [ -z "$DISCORD_WEBHOOK" ] && echo "No webhook configured, skipping" && exit 0
           curl -s -H "Content-Type: application/json" \
-            -d "{\"content\":\"✅ **ChemIllusion deployed** → https://app.mechanismsolver.org\nCommit: \`${{ github.sha }}\` — ${{ github.event.head_commit.message }}\"}" \
+            -d "{\"content\":\"✅ **ChemIllusion build passed**. Cloudflare Pages should auto-deploy from \`main\`.\nCommit: \`${{ github.sha }}\` — ${{ github.event.head_commit.message }}\"}" \
             "$DISCORD_WEBHOOK"
         continue-on-error: true

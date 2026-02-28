@@ -1,7 +1,7 @@
 import { Component } from 'react'
 import type { ReactNode } from 'react'
 import { DiscordContextProvider } from '../hooks/useDiscordSdk'
-import { SyncContextProvider } from '@robojs/sync/client'
+import { SyncContextProvider } from '../hooks/useSharedSync'
 import { Activity } from './Activity'
 import './App.css'
 

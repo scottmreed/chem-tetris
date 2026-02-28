@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDiscordSdk } from '../hooks/useDiscordSdk'
-import { useSyncState } from '@robojs/sync/client'
+import { useSyncState } from '../hooks/useSharedSync'
 import { useMultiplayerSync } from '../hooks/useMultiplayerSync'
 import { calculateGarbageRows } from './game/garbage'
 import type { HighScoreEntry, PlayerState } from './game/types'

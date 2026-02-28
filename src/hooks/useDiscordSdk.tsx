@@ -162,7 +162,9 @@ export async function authenticateSdk(options?: AuthenticateSdkOptions) {
 		scope: scope
 	})
 
-	const response = await fetch('/api/token', {
+	const tokenEndpoint = isEmbedded ? '/.proxy/api/token' : '/api/token'
+
+	const response = await fetch(tokenEndpoint, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json'

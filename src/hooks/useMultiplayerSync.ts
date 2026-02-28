@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import { useSyncState } from '@robojs/sync/client'
+import { useSyncState } from './useSharedSync'
 import type { LobbyState, PlayerState, GarbageEvent, PlayerLobbyInfo } from '../app/game/types'
 
 const EMPTY_LOBBY: LobbyState = {
