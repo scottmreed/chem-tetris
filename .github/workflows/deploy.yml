@@ -31,7 +31,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=chem-tetris-discord --commit-dirty=true
+          command: pages deploy dist --project-name=chem-tetris-discord --branch=main --functions=functions --commit-dirty=true
 
       - name: Notify Discord on success
         if: success()
