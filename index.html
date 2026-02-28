@@ -5,8 +5,25 @@
 		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>ChemIllusion: IUPAC Rain</title>
+		<script>
+			// Catch any JS error before React mounts and make it visible
+			window.__showError = function (msg) {
+				var root = document.getElementById('root')
+				if (root) {
+					root.style.cssText =
+						'padding:16px;font-family:monospace;font-size:12px;background:#12121a;color:#ff6b6b;min-height:100vh;white-space:pre-wrap;word-break:break-word'
+					root.textContent = 'Init error:\n' + msg
+				}
+			}
+			window.addEventListener('error', function (e) {
+				window.__showError(e.message + '\n' + e.filename + ':' + e.lineno + '\n' + (e.error ? e.error.stack : ''))
+			})
+			window.addEventListener('unhandledrejection', function (e) {
+				window.__showError('Unhandled rejection:\n' + (e.reason ? (e.reason.stack || String(e.reason)) : String(e)))
+			})
+		</script>
 	</head>
-	<body>
+	<body style="margin:0;background:#12121a">
 		<div id="root"></div>
 		<script type="module" src="/src/app/index.tsx"></script>
 	</body>
