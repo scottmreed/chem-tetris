@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDiscordSdk } from '../hooks/useDiscordSdk'
 import { useSyncState } from '../hooks/useSharedSync'
 import { useMultiplayerSync } from '../hooks/useMultiplayerSync'
+import { useChiptuneMusic } from '../hooks/useChiptuneMusic'
 import { calculateGarbageRows } from './game/garbage'
 import type { HighScoreEntry, PlayerState } from './game/types'
 import ChemAsciiTetris from './components/ChemAsciiTetris'
@@ -29,6 +30,9 @@ export const Activity = () => {
 	const [gameStarted, setGameStarted] = useState(false)
 	const [isPlaying, setIsPlaying] = useState(false)
 	const [pendingGarbage, setPendingGarbage] = useState(0)
+
+	// Background music
+	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, isPlaying: isMusicPlaying } = useChiptuneMusic(0.15)
 
 	const displayName = session?.user?.global_name || session?.user?.username || 'Player'
 	const userId = session?.user?.id || 'unknown'
@@ -118,7 +122,9 @@ export const Activity = () => {
 	const handleGameStart = useCallback(() => {
 		setIsPlaying(true)
 		setTotalGamesPlayed((prev: number) => prev + 1)
-	}, [setTotalGamesPlayed])
+		// Start background music when game begins
+		setTimeout(() => playMusic(), 500)
+	}, [setTotalGamesPlayed, playMusic])
 
 	const handleGameStateChange = useCallback(
 		(state: typeof gameState) => {
@@ -152,8 +158,10 @@ export const Activity = () => {
 			if (playerCount > 1) {
 				reportDeath()
 			}
+			// Stop background music when player dies
+			stopMusic()
 		},
-		[playerCount, reportDeath]
+		[playerCount, reportDeath, stopMusic]
 	)
 
 	const handlePlayerStateChange = useCallback(
@@ -167,7 +175,9 @@ export const Activity = () => {
 		setGameStarted(false)
 		setCountdown(null)
 		resetLobby()
-	}, [resetLobby])
+		// Stop background music when going back to lobby
+		stopMusic()
+	}, [resetLobby, stopMusic])
 
 	// Loading screen
 	if (!authenticated && status !== 'ready') {
@@ -424,6 +434,14 @@ export const Activity = () => {
 					>
 						{showHint ? 'Hide SMILES' : 'Show SMILES'}
 					</button>
+					<button
+						onClick={toggleMusic}
+						className={`rounded border border-[#3a3a55] px-2 py-0.5 text-[11px] hover:bg-[#1b273f] ${
+							isMusicPlaying ? 'bg-[#1b273f] text-[#f5b63b]' : 'bg-[#191926] text-[#f5b63b]'
+						}`}
+					>
+						{isMusicPlaying ? '🔊 Music' : '🔇 Music'}
+					</button>
 				</div>
 			)}
 
@@ -455,7 +473,7 @@ export const Activity = () => {
 					<ChemAsciiTetris
 						width={10}
 						height={12}
-						onEnd={(score) => { setLastScore(score); setIsPlaying(false) }}
+						onEnd={(score) => { setLastScore(score); setIsPlaying(false); stopMusic() }}
 						onGameStateChange={handleGameStateChange}
 						showHint={showHint}
 						discordUsername={displayName}

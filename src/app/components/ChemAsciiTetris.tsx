@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import type { Cell, Atom, HighScoreEntry } from '../game/types'
 import { useGameEngine } from '../../hooks/useGameEngine'
+import { useChiptuneMusic } from '../../hooks/useChiptuneMusic'
 
 export type { HighScoreEntry } from '../game/types'
 
@@ -68,8 +69,11 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 		},
 		ref
 	) => {
-		const [isMobile, setIsMobile] = useState(false)
-		const containerRef = useRef<HTMLDivElement | null>(null)
+	const [isMobile, setIsMobile] = useState(false)
+	const containerRef = useRef<HTMLDivElement | null>(null)
+
+	// Background music
+	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, isPlaying: isMusicPlaying, volume, setVolume } = useChiptuneMusic(0.15)
 
 		useEffect(() => {
 			if (typeof window !== 'undefined') {
@@ -80,6 +84,9 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 		}, [])
 
 		const handleDeath = async (score: number) => {
+			// Stop background music when game ends
+			stopMusic()
+
 			onEnd?.(score)
 			onPlayerDeath?.(score)
 
@@ -167,13 +174,15 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 			version,
 		])
 
-		// External start trigger (for multiplayer countdown)
-		useEffect(() => {
-			if (externalStart && !hasStarted) {
-				start()
-				onGameStart?.()
-			}
-		}, [externalStart])
+	// External start trigger (for multiplayer countdown)
+	useEffect(() => {
+		if (externalStart && !hasStarted) {
+			start()
+			onGameStart?.()
+			// Start background music when game begins
+			setTimeout(() => playMusic(), 500) // Small delay to let game initialize
+		}
+	}, [externalStart, playMusic])
 
 		// Focus game container when started
 		useEffect(() => {
@@ -394,6 +403,20 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 								}}
 							>
 								Help
+							</button>
+							<button
+								onClick={toggleMusic}
+								style={{
+									padding: '3px 8px',
+									borderRadius: 6,
+									border: '1px solid #3a3a55',
+									background: isMusicPlaying ? '#1b273f' : '#191926',
+									color: '#f5b63b',
+									cursor: 'pointer',
+									fontSize: 11,
+								}}
+							>
+								{isMusicPlaying ? '🔊 Music' : '🔇 Music'}
 							</button>
 						</div>
 						<p style={{ color: '#90a2c9', fontSize: 11, margin: 0 }}>
