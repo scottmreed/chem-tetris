@@ -16,6 +16,8 @@ export interface ChiptuneMusicState {
 	isPlaying: boolean
 	/** Current volume (0.0 to 1.0) */
 	volume: number
+	/** Whether autoplay was blocked by browser policy */
+	autoplayBlocked: boolean
 }
 
 /**
@@ -29,6 +31,7 @@ export function useChiptuneMusic(volume: number = 0.2): ChiptuneMusicControls & 
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
 	const [isPlaying, setIsPlaying] = useState(false)
 	const [currentVolume, setCurrentVolume] = useState(volume)
+	const [autoplayBlocked, setAutoplayBlocked] = useState(false)
 
 	// 80s synthwave melody - a simple repeating pattern
 	const melody = [
@@ -97,25 +100,32 @@ export function useChiptuneMusic(volume: number = 0.2): ChiptuneMusicControls & 
 		}
 	}, [currentVolume])
 
-	const play = useCallback(() => {
+	const play = useCallback(async () => {
 		if (isPlaying) return
 
 		initializeAudio()
 
-		if (audioContextRef.current?.state === 'suspended') {
-			audioContextRef.current.resume()
+		try {
+			// Resume audio context if suspended (required for autoplay policy)
+			if (audioContextRef.current?.state === 'suspended') {
+				await audioContextRef.current.resume()
+			}
+
+			if (oscillatorRef.current) {
+				oscillatorRef.current.start()
+			}
+
+			// Start the melody loop
+			currentNoteIndex = 0
+			playNextNote()
+			intervalRef.current = setInterval(playNextNote, 300) // Note duration
+
+			setIsPlaying(true)
+			setAutoplayBlocked(false) // Reset blocked state if it was set
+		} catch (error) {
+			console.warn('Audio playback blocked by browser autoplay policy:', error)
+			setAutoplayBlocked(true)
 		}
-
-		if (oscillatorRef.current) {
-			oscillatorRef.current.start()
-		}
-
-		// Start the melody loop
-		currentNoteIndex = 0
-		playNextNote()
-		intervalRef.current = setInterval(playNextNote, 300) // Note duration
-
-		setIsPlaying(true)
 	}, [isPlaying, initializeAudio, playNextNote])
 
 	const stop = useCallback(() => {
@@ -173,5 +183,6 @@ export function useChiptuneMusic(volume: number = 0.2): ChiptuneMusicControls & 
 		setVolume,
 		isPlaying,
 		volume: currentVolume,
+		autoplayBlocked,
 	}
 }

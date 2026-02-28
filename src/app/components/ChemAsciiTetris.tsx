@@ -73,7 +73,7 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 	const containerRef = useRef<HTMLDivElement | null>(null)
 
 	// Background music
-	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, isPlaying: isMusicPlaying, volume, setVolume } = useChiptuneMusic(0.15)
+	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, isPlaying: isMusicPlaying, volume, setVolume, autoplayBlocked } = useChiptuneMusic(0.15)
 
 		useEffect(() => {
 			if (typeof window !== 'undefined') {
@@ -179,10 +179,10 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 		if (externalStart && !hasStarted) {
 			start()
 			onGameStart?.()
-			// Start background music when game begins
-			setTimeout(() => playMusic(), 500) // Small delay to let game initialize
+			// Note: Music will only start if user has interacted with music controls
+			// due to browser autoplay policies
 		}
-	}, [externalStart, playMusic])
+	}, [externalStart])
 
 		// Focus game container when started
 		useEffect(() => {
@@ -411,12 +411,12 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 									borderRadius: 6,
 									border: '1px solid #3a3a55',
 									background: isMusicPlaying ? '#1b273f' : '#191926',
-									color: '#f5b63b',
+									color: autoplayBlocked ? '#ff6b6b' : '#f5b63b',
 									cursor: 'pointer',
 									fontSize: 11,
 								}}
 							>
-								{isMusicPlaying ? '🔊 Music' : '🔇 Music'}
+								{autoplayBlocked ? '🚫 Music' : isMusicPlaying ? '🔊 Music' : '🔇 Music'}
 							</button>
 						</div>
 						<p style={{ color: '#90a2c9', fontSize: 11, margin: 0 }}>

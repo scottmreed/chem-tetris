@@ -32,7 +32,7 @@ export const Activity = () => {
 	const [pendingGarbage, setPendingGarbage] = useState(0)
 
 	// Background music
-	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, isPlaying: isMusicPlaying } = useChiptuneMusic(0.15)
+	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, isPlaying: isMusicPlaying, autoplayBlocked } = useChiptuneMusic(0.15)
 
 	const displayName = session?.user?.global_name || session?.user?.username || 'Player'
 	const userId = session?.user?.id || 'unknown'
@@ -122,9 +122,9 @@ export const Activity = () => {
 	const handleGameStart = useCallback(() => {
 		setIsPlaying(true)
 		setTotalGamesPlayed((prev: number) => prev + 1)
-		// Start background music when game begins
-		setTimeout(() => playMusic(), 500)
-	}, [setTotalGamesPlayed, playMusic])
+		// Note: Music will only start if user has interacted with music controls
+		// due to browser autoplay policies
+	}, [setTotalGamesPlayed])
 
 	const handleGameStateChange = useCallback(
 		(state: typeof gameState) => {
@@ -437,10 +437,14 @@ export const Activity = () => {
 					<button
 						onClick={toggleMusic}
 						className={`rounded border border-[#3a3a55] px-2 py-0.5 text-[11px] hover:bg-[#1b273f] ${
-							isMusicPlaying ? 'bg-[#1b273f] text-[#f5b63b]' : 'bg-[#191926] text-[#f5b63b]'
+							autoplayBlocked
+								? 'bg-[#191926] text-[#ff6b6b]'
+								: isMusicPlaying
+									? 'bg-[#1b273f] text-[#f5b63b]'
+									: 'bg-[#191926] text-[#f5b63b]'
 						}`}
 					>
-						{isMusicPlaying ? '🔊 Music' : '🔇 Music'}
+						{autoplayBlocked ? '🚫 Music' : isMusicPlaying ? '🔊 Music' : '🔇 Music'}
 					</button>
 				</div>
 			)}
