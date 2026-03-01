@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useDiscordSdk } from '../hooks/useDiscordSdk'
+import { useDiscordSdk, discordSdk } from '../hooks/useDiscordSdk'
 import { useSyncState } from '../hooks/useSharedSync'
 import { useMultiplayerSync } from '../hooks/useMultiplayerSync'
 import { useChiptuneMusic } from '../hooks/useChiptuneMusic'
@@ -60,8 +60,16 @@ export const Activity = () => {
 	useEffect(() => {
 		if (authenticated && userId !== 'unknown') {
 			joinLobby(displayName, avatar)
+			// Try to start music automatically when authenticated
+			playOnInteraction()
+			// Send welcome message to Discord channel
+			try {
+				discordSdk.commands.sendActivityChannelMessage('🎮 Enjoy the game!')
+			} catch (error) {
+				console.warn('Failed to send Discord message:', error)
+			}
 		}
-	}, [authenticated, userId])
+	}, [authenticated, userId, playOnInteraction])
 
 	// Handle countdown phase
 	useEffect(() => {

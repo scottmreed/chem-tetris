@@ -28,11 +28,11 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         if: success()
-        run: |
-          npx wrangler pages deploy dist --project-name=chem-tetris-discord --branch=main
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/wrangler-action@v3.14.1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=chem-tetris-discord --branch=main
 
       - name: Notify Discord on success
         if: success()
