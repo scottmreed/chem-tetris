@@ -66,11 +66,18 @@ export const Activity = () => {
 
 		if (hasSentWelcomeRef.current || error) return
 		hasSentWelcomeRef.current = true
-		void discordSdk.commands
-			.sendActivityChannelMessage('🎮 Enjoy the game!')
-			.catch((commandError) => {
-				console.warn('Failed to send Discord message:', commandError)
-			})
+		const sendActivityChannelMessage = (
+			discordSdk.commands as {
+				sendActivityChannelMessage?: (message: string) => Promise<unknown>
+			}
+		).sendActivityChannelMessage
+		if (typeof sendActivityChannelMessage !== 'function') {
+			console.warn('Discord client does not support sendActivityChannelMessage')
+			return
+		}
+		void sendActivityChannelMessage('🎮 Enjoy the game!').catch((commandError) => {
+			console.warn('Failed to send Discord message:', commandError)
+		})
 	}, [authenticated, userId, displayName, avatar, joinLobby, playOnInteraction, error])
 
 	// Handle countdown phase
