@@ -11,7 +11,7 @@ import { Lobby } from './components/Lobby'
 import { MultiplayerBoard } from './components/MultiplayerBoard'
 
 export const Activity = () => {
-	const { authenticated, session, status } = useDiscordSdk()
+	const { authenticated, error, session, status } = useDiscordSdk()
 
 	const [highScores, setHighScores] = useSyncState<HighScoreEntry[]>([], ['highScores'])
 	const [totalGamesPlayed, setTotalGamesPlayed] = useSyncState<number>(0, ['totalGamesPlayed'])
@@ -30,9 +30,10 @@ export const Activity = () => {
 	const [gameStarted, setGameStarted] = useState(false)
 	const [isPlaying, setIsPlaying] = useState(false)
 	const [pendingGarbage, setPendingGarbage] = useState(0)
+	const hasSentWelcomeRef = useRef(false)
 
 	// Background music
-	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, playOnInteraction, isPlaying: isMusicPlaying, autoplayBlocked } = useChiptuneMusic({
+	const { stop: stopMusic, toggle: toggleMusic, playOnInteraction, isPlaying: isMusicPlaying, autoplayBlocked } = useChiptuneMusic({
 		volume: 0.15,
 		autoPlayOnInteraction: true
 	})
@@ -58,18 +59,19 @@ export const Activity = () => {
 
 	// Auto-join lobby when authenticated
 	useEffect(() => {
-		if (authenticated && userId !== 'unknown') {
-			joinLobby(displayName, avatar)
-			// Try to start music automatically when authenticated
-			playOnInteraction()
-			// Send welcome message to Discord channel
-			try {
-				discordSdk.commands.sendActivityChannelMessage('🎮 Enjoy the game!')
-			} catch (error) {
-				console.warn('Failed to send Discord message:', error)
-			}
-		}
-	}, [authenticated, userId, playOnInteraction])
+		if (!authenticated || userId === 'unknown') return
+
+		joinLobby(displayName, avatar)
+		playOnInteraction()
+
+		if (hasSentWelcomeRef.current || error) return
+		hasSentWelcomeRef.current = true
+		void discordSdk.commands
+			.sendActivityChannelMessage('🎮 Enjoy the game!')
+			.catch((commandError) => {
+				console.warn('Failed to send Discord message:', commandError)
+			})
+	}, [authenticated, userId, displayName, avatar, joinLobby, playOnInteraction, error])
 
 	// Handle countdown phase
 	useEffect(() => {
@@ -148,7 +150,7 @@ export const Activity = () => {
 	)
 
 	const handleMatchMolecule = useCallback(
-		(moleculePattern: string, _score: number) => {
+		(moleculePattern: string) => {
 			if (playerCount <= 1) return // no opponents in solo
 			const rows = calculateGarbageRows(moleculePattern)
 			const players = Object.values(lobby.players)
@@ -198,7 +200,7 @@ export const Activity = () => {
 					<div className="mb-2 text-lg font-bold">ChemIllusion: IUPAC Rain</div>
 					<div className="text-sm text-[#90a2c9]">
 						{status === 'error'
-							? 'Failed to connect to Discord'
+							? error || 'Failed to connect to Discord'
 							: 'Connecting to Discord...'}
 					</div>
 				</div>
@@ -417,6 +419,11 @@ export const Activity = () => {
 						)}
 					</div>
 				)}
+				{error && status === 'ready' && (
+					<div className="mt-2 rounded-full border border-[#4a5578] bg-[#121a2d] px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[#8bd3ff]">
+						Local fallback mode on this client
+					</div>
+				)}
 			</div>
 
 			{/* Game Info Bar - Desktop (single player or multiplayer) */}
@@ -467,6 +474,7 @@ export const Activity = () => {
 			<div className="flex-shrink-0">
 				{isMultiplayer ? (
 					<MultiplayerBoard
+						mobileLayout={gameState.isMobile}
 						localPlayerId={userId}
 						lobby={lobby}
 						playerStates={playerStates}

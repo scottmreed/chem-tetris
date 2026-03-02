@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from 'react'
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import type { Cell, Atom, HighScoreEntry } from '../game/types'
 import { useGameEngine } from '../../hooks/useGameEngine'
 import { useChiptuneMusic } from '../../hooks/useChiptuneMusic'
@@ -58,7 +58,6 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 			onHighScoreSubmit,
 			onGameStart,
 			totalGamesPlayed = 0,
-			currentHighScores = [],
 			compact = false,
 			fontSize = 16,
 			onMatchMolecule,
@@ -73,7 +72,7 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 	const containerRef = useRef<HTMLDivElement | null>(null)
 
 	// Background music
-	const { play: playMusic, stop: stopMusic, toggle: toggleMusic, playOnInteraction, isPlaying: isMusicPlaying, volume, setVolume, autoplayBlocked } = useChiptuneMusic({
+	const { stop: stopMusic, toggle: toggleMusic, playOnInteraction, isPlaying: isMusicPlaying, autoplayBlocked } = useChiptuneMusic({
 		volume: 0.15,
 		autoPlayOnInteraction: true
 	})
@@ -140,7 +139,6 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 		})
 
 		const {
-			engine,
 			engineRef,
 			version,
 			highlightKeys,
@@ -274,6 +272,30 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 				g.moveHorizontal(1)
 				bump()
 			}
+		}
+		const dispatchGameKey = (key: string, code = key) => {
+			window.dispatchEvent(new KeyboardEvent('keydown', { key, code, bubbles: true }))
+		}
+		const dispatchArrowDown = (type: 'keydown' | 'keyup') => {
+			window.dispatchEvent(
+				new KeyboardEvent(type, {
+					key: 'ArrowDown',
+					code: 'ArrowDown',
+					bubbles: true,
+				})
+			)
+		}
+		const mobileControlButtonStyle: React.CSSProperties = {
+			minWidth: 60,
+			padding: '10px 12px',
+			borderRadius: 10,
+			border: '1px solid #2d3b67',
+			background: '#121a32',
+			color: '#dce5ff',
+			fontSize: 12,
+			fontWeight: 700,
+			letterSpacing: 0.3,
+			touchAction: 'manipulation',
 		}
 
 		return (
@@ -424,7 +446,7 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 							</button>
 						</div>
 						<p style={{ color: '#90a2c9', fontSize: 11, margin: 0 }}>
-							Arrows (or taps) move, Space drops, R restarts.
+							Arrows or touch controls move, Drop slams, R restarts.
 						</p>
 					</div>
 				)}
@@ -474,6 +496,78 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 							</>
 						)}
 					</div>
+
+					{isMobile && !compact && (
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								gap: 8,
+								width: '100%',
+								maxWidth: 320,
+							}}
+						>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+									gap: 8,
+								}}
+							>
+								<button type="button" onClick={tapLeft} style={mobileControlButtonStyle}>
+									Left
+								</button>
+								<button
+									type="button"
+									onPointerDown={() => dispatchArrowDown('keydown')}
+									onPointerUp={() => dispatchArrowDown('keyup')}
+									onPointerCancel={() => dispatchArrowDown('keyup')}
+									onPointerLeave={() => dispatchArrowDown('keyup')}
+									style={mobileControlButtonStyle}
+								>
+									Down
+								</button>
+								<button type="button" onClick={tapRight} style={mobileControlButtonStyle}>
+									Right
+								</button>
+							</div>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+									gap: 8,
+								}}
+							>
+								<button
+									type="button"
+									onClick={() => dispatchGameKey(' ', 'Space')}
+									style={mobileControlButtonStyle}
+								>
+									Drop
+								</button>
+								<button
+									type="button"
+									onClick={() => dispatchGameKey('r', 'KeyR')}
+									style={mobileControlButtonStyle}
+								>
+									Restart
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										if (showHelp) {
+											closeHelp()
+											return
+										}
+										openHelp()
+									}}
+									style={mobileControlButtonStyle}
+								>
+									Help
+								</button>
+							</div>
+						</div>
+					)}
 
 					{overlay && !externalStart && (
 						<div
@@ -642,7 +736,8 @@ const ChemAsciiTetris = forwardRef<ChemAsciiTetrisRef, ChemAsciiTetrisProps>(
 								</h4>
 								<p style={{ margin: '3px 0' }}>
 									Arrows move, Space hard-drops, H opens/closes help, R restarts.
-									Touch: tap left/right to move.
+									On phones, use the on-screen Left, Down, Right, Drop, Restart,
+									and Help buttons.
 								</p>
 							</section>
 							<section

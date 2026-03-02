@@ -7,56 +7,13 @@ type DiscordSession = UnwrapPromise<ReturnType<typeof discordSdk.commands.authen
 type AuthorizeInput = Parameters<typeof discordSdk.commands.authorize>[0]
 type SdkSetupResult = ReturnType<typeof useDiscordSdkSetup>
 
-const queryParams = new URLSearchParams(window.location.search)
+const queryParams = new URLSearchParams(
+	typeof window !== 'undefined' ? window.location.search : ''
+)
 const isEmbedded = queryParams.get('frame_id') != null
 
 let discordSdk: DiscordSDK | DiscordSDKMock
-
-if (isEmbedded) {
-	try {
-		discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID)
-	} catch (e) {
-		console.error('[DiscordSDK init error]', e)
-		// Fall back to mock so React still mounts and shows a visible error
-		discordSdk = new DiscordSDKMock(import.meta.env.VITE_DISCORD_CLIENT_ID ?? '', '', '')
-	}
-} else {
-	// We're using session storage for user_id, guild_id, and channel_id
-	// This way the user/guild/channel will be maintained until the tab is closed, even if you refresh
-	// Session storage will generate new unique mocks for each tab you open
-	// Any of these values can be overridden via query parameters
-	// i.e. if you set https://my-tunnel-url.com/?user_id=test_user_id
-	// this will override this will override the session user_id value
-	const mockUserId = getOverrideOrRandomSessionValue('user_id')
-	const mockGuildId = getOverrideOrRandomSessionValue('guild_id')
-	const mockChannelId = getOverrideOrRandomSessionValue('channel_id')
-
-	discordSdk = new DiscordSDKMock(import.meta.env.VITE_DISCORD_CLIENT_ID, mockGuildId, mockChannelId)
-	const discriminator = String(mockUserId.charCodeAt(0) % 5)
-
-	discordSdk._updateCommandMocks({
-		authenticate: async () => {
-			return {
-				access_token: 'mock_token',
-				user: {
-					username: mockUserId,
-					discriminator,
-					id: mockUserId,
-					avatar: null,
-					public_flags: 1
-				},
-				scopes: [],
-				expires: new Date(2112, 1, 1).toString(),
-				application: {
-					description: 'mock_app_description',
-					icon: 'mock_app_icon',
-					id: 'mock_app_id',
-					name: 'mock_app_name'
-				}
-			}
-		}
-	})
-}
+let usingMockDiscord = false
 
 export { discordSdk }
 
@@ -66,21 +23,89 @@ enum SessionStorageQueryParam {
 	channel_id = 'channel_id'
 }
 
+function safeSessionStorageGet(key: string) {
+	try {
+		return sessionStorage.getItem(key)
+	} catch (error) {
+		console.warn('[sessionStorage unavailable:getItem]', error)
+		return null
+	}
+}
+
+function safeSessionStorageSet(key: string, value: string) {
+	try {
+		sessionStorage.setItem(key, value)
+	} catch (error) {
+		console.warn('[sessionStorage unavailable:setItem]', error)
+	}
+}
+
 function getOverrideOrRandomSessionValue(queryParam: `${SessionStorageQueryParam}`) {
 	const overrideValue = queryParams.get(queryParam)
 	if (overrideValue != null) {
 		return overrideValue
 	}
 
-	const currentStoredValue = sessionStorage.getItem(queryParam)
+	const currentStoredValue = safeSessionStorageGet(queryParam)
 	if (currentStoredValue != null) {
 		return currentStoredValue
 	}
 
 	// Set queryParam to a random 8-character string
 	const randomString = Math.random().toString(36).slice(2, 10)
-	sessionStorage.setItem(queryParam, randomString)
+	safeSessionStorageSet(queryParam, randomString)
 	return randomString
+}
+
+function createMockDiscordSdk() {
+	const clientId = import.meta.env.VITE_DISCORD_CLIENT_ID ?? ''
+	const mockUserId = getOverrideOrRandomSessionValue('user_id')
+	const mockGuildId = getOverrideOrRandomSessionValue('guild_id')
+	const mockChannelId = getOverrideOrRandomSessionValue('channel_id')
+	const discriminator = String(mockUserId.charCodeAt(0) % 5)
+	const mockDiscordSdk = new DiscordSDKMock(clientId, mockGuildId, mockChannelId)
+
+	mockDiscordSdk._updateCommandMocks({
+		authenticate: async () => ({
+			access_token: 'mock_token',
+			user: {
+				username: mockUserId,
+				discriminator,
+				id: mockUserId,
+				avatar: null,
+				public_flags: 1,
+			},
+			scopes: [],
+			expires: new Date(2112, 1, 1).toString(),
+			application: {
+				description: 'mock_app_description',
+				icon: 'mock_app_icon',
+				id: 'mock_app_id',
+				name: 'mock_app_name',
+			},
+		}),
+	})
+
+	return mockDiscordSdk
+}
+
+function enableMockDiscord(reason?: unknown) {
+	if (reason) {
+		console.warn('[DiscordSDK fallback to mock]', reason)
+	}
+	usingMockDiscord = true
+	discordSdk = createMockDiscordSdk()
+	return discordSdk
+}
+
+if (isEmbedded) {
+	try {
+		discordSdk = new DiscordSDK(import.meta.env.VITE_DISCORD_CLIENT_ID)
+	} catch (e) {
+		enableMockDiscord(e)
+	}
+} else {
+	enableMockDiscord()
 }
 
 const DiscordContext = createContext<SdkSetupResult>({
@@ -148,7 +173,7 @@ export async function authenticateSdk(options?: AuthenticateSdkOptions) {
 	await discordSdk.ready()
 
 	// In browser (non-embedded) dev mode the SDK is a mock — skip real OAuth
-	if (!isEmbedded) {
+	if (!isEmbedded || usingMockDiscord) {
 		const auth = await discordSdk.commands.authenticate({ access_token: 'mock_token' })
 		if (auth == null) throw new Error('Discord authenticate command failed')
 		return { accessToken: 'mock_token', auth }
@@ -220,14 +245,28 @@ export function useDiscordSdkSetup(options?: UseDiscordSdkSetupOptions) {
 			setStatus('ready')
 		} catch (e) {
 			console.error(e)
-			if (e instanceof Error) {
-				setError(e.message)
-			} else {
-				setError('An unknown error occurred')
+			const message = e instanceof Error ? e.message : 'An unknown error occurred'
+
+			if (isEmbedded && !usingMockDiscord) {
+				try {
+					enableMockDiscord(e)
+					if (authenticate) {
+						const { accessToken, auth } = await authenticateSdk({ scope })
+						setAccessToken(accessToken)
+						setSession(auth)
+					}
+					setError('Discord SDK was unavailable in this client, so the game switched to local mode.')
+					setStatus('ready')
+					return
+				} catch (fallbackError) {
+					console.error('[DiscordSDK mock fallback failed]', fallbackError)
+				}
 			}
+
+			setError(message)
 			setStatus('error')
 		}
-	}, [authenticate])
+	}, [authenticate, scope])
 
 	useStableEffect(() => {
 		setupDiscordSdk()

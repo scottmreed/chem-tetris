@@ -4,6 +4,7 @@ import { OpponentBoard } from './OpponentBoard'
 import { GarbageIndicator } from './GarbageIndicator'
 
 interface MultiplayerBoardProps {
+	mobileLayout: boolean
 	localPlayerId: string
 	lobby: LobbyState
 	playerStates: (PlayerState | null)[]
@@ -34,6 +35,7 @@ interface MultiplayerBoardProps {
 }
 
 export function MultiplayerBoard({
+	mobileLayout,
 	localPlayerId,
 	lobby,
 	playerStates,
@@ -72,8 +74,10 @@ export function MultiplayerBoard({
 		<div
 			style={{
 				display: 'flex',
+				flexDirection: mobileLayout ? 'column' : 'row',
+				flexWrap: mobileLayout ? 'nowrap' : 'wrap',
 				gap: totalPlayers <= 2 ? 16 : 10,
-				alignItems: 'flex-start',
+				alignItems: mobileLayout ? 'center' : 'flex-start',
 				justifyContent: 'center',
 				width: '100%',
 				maxWidth: totalPlayers <= 2 ? 600 : 800,
@@ -118,10 +122,12 @@ export function MultiplayerBoard({
 				<div
 					style={{
 						display: 'flex',
-						flexDirection: opponents.length >= 3 ? 'column' : 'column',
+						flexDirection: mobileLayout ? 'row' : 'column',
 						gap: opponents.length >= 3 ? 6 : 10,
-						flexWrap: opponents.length >= 3 ? 'wrap' : 'nowrap',
-						maxHeight: opponents.length >= 3 ? 400 : undefined,
+						flexWrap: 'wrap',
+						justifyContent: 'center',
+						maxHeight: mobileLayout ? undefined : opponents.length >= 3 ? 400 : undefined,
+						maxWidth: '100%',
 					}}
 				>
 					{opponents.map((opponent) => {
