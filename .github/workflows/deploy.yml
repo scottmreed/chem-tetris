@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  deployments: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,12 +31,39 @@ jobs:
           VITE_DISCORD_CLIENT_ID: ${{ secrets.VITE_DISCORD_CLIENT_ID }}
 
       - name: Deploy to Cloudflare Pages
+        id: deploy
         if: success()
+        continue-on-error: true
         uses: cloudflare/wrangler-action@v3.14.1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=chem-tetris-discord --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: >-
+            pages deploy dist
+            --project-name=chem-tetris-discord
+            --branch=main
+            --commit-dirty=true
+            --commit-hash=${{ github.sha }}
+
+      - name: Print Cloudflare deploy output
+        if: always() && steps.deploy.outcome != 'skipped'
+        env:
+          DEPLOY_STDOUT: ${{ steps.deploy.outputs.command-output }}
+          DEPLOY_STDERR: ${{ steps.deploy.outputs.command-stderr }}
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
+          DEPLOY_ALIAS_URL: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+        run: |
+          echo "Wrangler stdout:"
+          printf '%s\n' "$DEPLOY_STDOUT"
+          echo "Wrangler stderr:"
+          printf '%s\n' "$DEPLOY_STDERR"
+          echo "Deployment URL: $DEPLOY_URL"
+          echo "Deployment alias URL: $DEPLOY_ALIAS_URL"
+
+      - name: Fail workflow if Cloudflare deploy failed
+        if: steps.deploy.outcome == 'failure'
+        run: exit 1
 
       - name: Notify Discord on success
         if: success()
