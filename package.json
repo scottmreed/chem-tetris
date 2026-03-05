@@ -20,16 +20,17 @@
 		"web"
 	],
 	"scripts": {
-		"build": "robox build",
-		"build:web": "vite build --config config/vite.mjs",
-		"deploy": "robox deploy",
-		"dev": "robox dev",
+		"build": "node scripts/start.mjs build",
+		"build:web": "node scripts/start-web.mjs build",
+		"deploy": "node scripts/start.mjs deploy",
+		"dev": "node scripts/start.mjs dev",
+		"dev:web": "node scripts/start-web.mjs dev",
 		"doctor": "sage doctor",
-		"invite": "robox invite",
+		"invite": "node scripts/start.mjs invite",
 		"lint": "npm run lint:eslint && npm run lint:style",
 		"lint:eslint": "eslint -c config/eslint.mjs .",
 		"lint:style": "prettier --write .",
-		"start": "robox start",
+		"start": "node scripts/start.mjs start",
 		"tunnel": "cloudflared tunnel --config cloudflared.yml run",
 		"upgrade": "sage upgrade",
 		"postinstall": "node scripts/fix-robo-sync.mjs"
