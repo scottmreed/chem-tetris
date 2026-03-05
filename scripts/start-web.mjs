@@ -37,8 +37,8 @@ const command = process.argv[2] || 'dev';
 
 // Map commands to vite commands
 const viteCommands = {
-	dev: ['vite', '--config', 'config/vite.mjs'],
-	build: ['vite', 'build', '--config', 'config/vite.mjs'],
+	dev: ['--config', 'config/vite.mjs'],
+	build: ['build', '--config', 'config/vite.mjs'],
 };
 
 const viteArgs = viteCommands[command];
