@@ -3,8 +3,10 @@
 A Discord embedded activity that brings chemical-themed ASCII Tetris to any voice channel. Arrange falling Carbon (C) and Oxygen (O) atoms to match IUPAC molecule targets. Compete with friends and climb the leaderboard.
 
 The game can be previewed here:
-https://chem-tetris-discord.pages.dev
 https://app.mechanismsolver.org
+
+Preview deployments may also be available on the default Pages hostname:
+https://chem-tetris-discord.pages.dev
 
 ## Project layout
 
@@ -29,7 +31,7 @@ Local dev only:
 - **Frontend**: React + Vite + Tailwind, built to `dist/`
 - **Token API**: `functions/api/token.js` — Cloudflare Pages Function, exchanges Discord OAuth codes
 - **Multiplayer sync**: `@robojs/sync` via WebSocket (works in local dev; state is local-only on Pages free tier)
-- **Deployment**: Cloudflare Pages at `app.mechanismsolver.org`, auto-deploys on push to `main`
+- **Deployment**: Cloudflare Pages with `app.mechanismsolver.org` as the production Activity origin, auto-deploying on push to `main`
 
 ## Local development
 
@@ -78,3 +80,4 @@ Required GitHub secrets:
 
 - **Activity URL Mappings → Root**: Prefix `/`, Target `app.mechanismsolver.org`
 - **OAuth2 Redirects**: `https://app.mechanismsolver.org`
+- Treat `https://chem-tetris-discord.pages.dev` as preview-only, not as a production Activity origin
