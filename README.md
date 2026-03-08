@@ -8,6 +8,10 @@ https://app.mechanismsolver.org
 Preview deployments may also be available on the default Pages hostname:
 https://chem-tetris-discord.pages.dev
 
+Legal pages for Discord app verification:
+- Terms of Service: https://app.mechanismsolver.org/terms
+- Privacy Policy: https://app.mechanismsolver.org/privacy
+
 ## Project layout
 
 | Repo | Folder | Purpose |
@@ -80,4 +84,16 @@ Required GitHub secrets:
 
 - **Activity URL Mappings → Root**: Prefix `/`, Target `app.mechanismsolver.org`
 - **OAuth2 Redirects**: `https://app.mechanismsolver.org`
+- You must keep at least one exact redirect URI configured or Discord OAuth will fail
 - Treat `https://chem-tetris-discord.pages.dev` as preview-only, not as a production Activity origin
+
+## Discord app verification
+
+Discord verification currently requires:
+- The app must belong to a Team
+- A Terms of Service URL
+- A Privacy Policy URL
+
+Suggested values:
+- Terms of Service: `https://app.mechanismsolver.org/terms`
+- Privacy Policy: `https://app.mechanismsolver.org/privacy`
